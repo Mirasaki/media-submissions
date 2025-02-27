@@ -8,7 +8,6 @@ import { buildPlaceholders, replacePlaceholders } from "./placeholders";
 export const initBacklog = async (
   client: Client<true>,
   mediaModules: MediaModule[],
-  checkLatest = 250
 ) => {
   const deleteMessage = (message: Message, debugTag: string) => {
     message.delete().catch((e) => {
@@ -23,6 +22,7 @@ export const initBacklog = async (
       quantities,
       votingEmojis,
       submissionThread,
+      backlogCheckLatest: checkLatest,
     } = mediaModule;
     const debugTag = `[${mediaModule.name}/backlog]`;
     const channel = client.channels.cache.get(mediaModule.submissionsChannelId);
@@ -157,11 +157,11 @@ export const initBacklog = async (
           );
           if (!placeholders) {
             debugLog(`${debugTag} Failed to build placeholders - this most likely means the message couldn't be resolved, aborting...`);
-            return;
+            continue;
           }
           if (channel.isVoiceBased()) {
             debugLog(`${debugTag} Channel is voice-based, skipping thread creation`);
-            return;
+            continue;
           }
           await channel.threads.create({
             name: replacePlaceholders(submissionThread.name, placeholders),
